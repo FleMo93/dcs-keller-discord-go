@@ -12,23 +12,30 @@ func main() {
 	token := ""
 	botChannel := ""
 	serverStatusMessageID := ""
+	username := ""
+	password := ""
+	serverName := ""
 
 	for _, ele := range arg {
-		if strings.Index(ele, "-t ") == 0 {
-			token = ele[3:]
-		} else if strings.Index(ele, "-c ") == 0 {
-			botChannel = ele[3:]
+		if strings.Index(ele, "--token ") == 0 {
+			token = ele[8:]
+		} else if strings.Index(ele, "--channel ") == 0 {
+			botChannel = ele[10:]
 		} else if strings.Index(ele, "--serverStatusMessageId ") == 0 {
 			serverStatusMessageID = ele[24:]
+		} else if strings.Index(ele, "--username ") == 0 {
+			username = ele[11:]
+		} else if strings.Index(ele, "--password ") == 0 {
+			password = ele[11:]
+		} else if strings.Index(ele, "--serverName ") == 0 {
+			serverName = ele[13:]
 		}
 	}
-	if token == "" {
-		log.Fatal("Missing \"-t \" parameter")
-	} else if botChannel == "" {
-		log.Fatal("Missing \"-c \" parameter")
+	if token == "" || botChannel == "" || serverStatusMessageID == "" || username == "" || password == "" || serverName == "" {
+		log.Fatal("Missing parameter")
 	}
 
-	err := m.RunBot(token, botChannel, serverStatusMessageID)
+	err := m.RunBot(token, botChannel, serverStatusMessageID, username, password, serverName)
 	if err != nil {
 		log.Fatal(err)
 	}
