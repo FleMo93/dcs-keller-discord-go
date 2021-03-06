@@ -2,6 +2,7 @@ package main
 
 import (
 	m "dcskellerdiscordgo"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -15,6 +16,7 @@ func main() {
 	username := ""
 	password := ""
 	serverName := ""
+	createMessage := false
 
 	for _, ele := range arg {
 		if strings.Index(ele, "--token ") == 0 {
@@ -29,14 +31,35 @@ func main() {
 			password = ele[11:]
 		} else if strings.Index(ele, "--serverName ") == 0 {
 			serverName = ele[13:]
+		} else if strings.Index(ele, "--createMessage") == 0 {
+			createMessage = true
 		}
 	}
-	if token == "" || botChannel == "" || serverStatusMessageID == "" || username == "" || password == "" || serverName == "" {
-		log.Fatal("Missing parameter")
-	}
 
-	err := m.RunBot(token, botChannel, serverStatusMessageID, username, password, serverName)
-	if err != nil {
-		log.Fatal(err)
+	if createMessage {
+		if token == "" || botChannel == "" {
+			log.Fatal("Missing parameter")
+		}
+
+		log.Print("Create bot messages")
+		msgIDs, err := m.CreateMessage(token, botChannel)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("Message IDs created:")
+		for _, msgID := range msgIDs {
+			fmt.Println(msgID)
+		}
+	} else {
+		if token == "" || botChannel == "" || serverStatusMessageID == "" || username == "" || password == "" || serverName == "" {
+			log.Fatal("Missing parameter")
+		}
+
+		err := m.RunBot(token, botChannel, serverStatusMessageID, username, password, serverName)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }

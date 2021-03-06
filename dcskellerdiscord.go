@@ -126,6 +126,27 @@ func RunBot(token string, botChannel string, serverStatusMessageID string, usern
 		Text: "Last update",
 	}
 
-	session.ChannelMessageEditEmbed(botChannel, serverStatusMessageID, &embedMessage)
+	message, err := session.ChannelMessageEditEmbed(botChannel, serverStatusMessageID, &embedMessage)
+	if message.Content != "" {
+		_, err := session.ChannelMessageEdit(message.ChannelID, message.ID, "")
+		if err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+// CreateMessage Creates the messages needed for the bot status
+func CreateMessage(token string, botChanngel string) ([]string, error) {
+	session, err := discordgo.New("Bot " + token)
+	if err != nil {
+		return []string{}, err
+	}
+
+	msg, err := session.ChannelMessageSend(botChanngel, "Initial message")
+	if err != nil {
+		return []string{}, err
+	}
+
+	return []string{msg.ID}, nil
 }
