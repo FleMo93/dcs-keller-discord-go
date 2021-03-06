@@ -3,6 +3,7 @@ package dcskellerdiscordgo
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -78,12 +79,20 @@ func getServerStatus(username string, password string, serverName string) (dcsSe
 	return dcsServer{}, errors.New("Server not found")
 }
 
+func verboseMsg(msg string, verbose bool) {
+	if verbose {
+		fmt.Println(msg)
+	}
+}
+
 // RunBot starts the dcs kellergeschwader discord bot
-func RunBot(token string, botChannel string, serverStatusMessageID string, username string, password string, serverName string) error {
+func RunBot(token string, botChannel string, serverStatusMessageID string, username string, password string, serverName string, verbose bool) error {
 	session, err := discordgo.New("Bot " + token)
 	if err != nil {
 		return err
 	}
+
+	verboseMsg("Bot created", verbose)
 
 	colorOnline := 3388721   //33b531
 	colorOffline := 11878449 //b54031
@@ -97,6 +106,7 @@ func RunBot(token string, botChannel string, serverStatusMessageID string, usern
 			return err
 		}
 	}
+	verboseMsg("Returned server status", verbose)
 
 	embedMessage := discordgo.MessageEmbed{}
 	embedMessage.Title = "Server Status"
@@ -123,16 +133,26 @@ func RunBot(token string, botChannel string, serverStatusMessageID string, usern
 
 	embedMessage.Timestamp = time.Now().UTC().Format("2006-01-02T15:04:05-0700")
 	embedMessage.Footer = &discordgo.MessageEmbedFooter{
-		Text: "Last update",
+		Text: "Last update:",
 	}
 
 	message, err := session.ChannelMessageEditEmbed(botChannel, serverStatusMessageID, &embedMessage)
+	if err != nil {
+		return err
+	}
+
+	verboseMsg("Edited message", verbose)
+
 	if message.Content != "" {
+		verboseMsg("Clear message content", verbose)
 		_, err := session.ChannelMessageEdit(message.ChannelID, message.ID, "")
 		if err != nil {
 			return err
 		}
+		verboseMsg("Message content cleared", verbose)
 	}
+
+	verboseMsg("Server status update finished", verbose)
 	return nil
 }
 

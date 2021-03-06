@@ -17,6 +17,7 @@ func main() {
 	password := ""
 	serverName := ""
 	createMessage := false
+	verbose := false
 
 	for _, ele := range arg {
 		if strings.Index(ele, "--token ") == 0 {
@@ -33,6 +34,8 @@ func main() {
 			serverName = ele[13:]
 		} else if strings.Index(ele, "--createMessage") == 0 {
 			createMessage = true
+		} else if strings.Index(ele, "--verbose") == 0 {
+			verbose = true
 		}
 	}
 
@@ -57,7 +60,7 @@ func main() {
 			log.Fatal("Missing parameter")
 		}
 
-		err := m.RunBot(token, botChannel, serverStatusMessageID, username, password, serverName)
+		err := m.RunBot(token, botChannel, serverStatusMessageID, username, password, serverName, verbose)
 		if err != nil {
 			log.Fatal(err)
 		}
