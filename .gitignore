@@ -1,3 +1,4 @@
 .vscode
 *.log
 *.exe
+cmd/config.json
