@@ -177,17 +177,10 @@ func RunBot(token string, botChannel string, serverStatusMessageID string, usern
 	}
 
 	if serverOnline == true {
-		playersOnline, err := strconv.Atoi(serverStatus.PLAYERS)
-		if err != nil {
-			return err
-		}
-		playersOnline--
-
 		embedMessage.Color = colorOnline
 		embedMessage.Description += "**Online**\n"
 		embedMessage.Description += "IP address: **" + serverStatus.IPADDRESS + ":" + serverStatus.PORT + "**\n"
 		embedMessage.Description += "Mission: **" + serverStatus.MISSIONNAME + "**\n"
-		embedMessage.Description += "Players online: **" + strconv.Itoa(playersOnline) + "**"
 
 		if serverStatusFile != "" {
 			status, err := readServerStatusFile(serverStatusFile)
@@ -196,7 +189,15 @@ func RunBot(token string, botChannel string, serverStatusMessageID string, usern
 			}
 
 			playerList := getPlayerListString(status)
+			embedMessage.Description += "Players online: **" + strconv.Itoa(len(status.Players)) + "**"
 			embedMessage.Description += "\n\n" + playerList
+		} else {
+			playersOnline, err := strconv.Atoi(serverStatus.PLAYERS)
+			if err != nil {
+				return err
+			}
+			playersOnline--
+			embedMessage.Description += "Players online: **" + strconv.Itoa(playersOnline) + "**"
 		}
 	} else {
 		embedMessage.Color = colorOffline
