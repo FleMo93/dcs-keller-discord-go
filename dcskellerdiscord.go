@@ -48,8 +48,9 @@ type dcsServerList struct {
 }
 
 type dcsServerStatusPlayer struct {
-	Name string `json:"name"`
-	Role string `json:"role"`
+	Name       string  `json:"name"`
+	Role       string  `json:"role"`
+	OnlineTime float64 `json:"onlineTime"`
 }
 
 type dcsServerStatus struct {
@@ -112,14 +113,15 @@ func readServerStatusFile(filePath string) (dcsServerStatus, error) {
 }
 
 func getPlayerListString(serverStatus dcsServerStatus) string {
-	players := make(map[string][]string)
+	// plane - player group
+	players := make(map[string][]dcsServerStatusPlayer)
 
 	for _, player := range serverStatus.Players {
-		if players[player.Role] == nil {
-			players[player.Role] = []string{}
-		}
+		// if players[player.Role] == nil {
+		// 	players[player.Role] = []
+		// }
 
-		players[player.Role] = append(players[player.Role], player.Name)
+		players[player.Role] = append(players[player.Role], player)
 	}
 
 	var planeKeys []string
@@ -132,14 +134,15 @@ func getPlayerListString(serverStatus dcsServerStatus) string {
 	for _, planeName := range planeKeys {
 		listString += "**" + planeName + "**\n"
 
-		var playerKeys []string
-		for _, playerName := range players[planeName] {
-			playerKeys = append(playerKeys, playerName)
-		}
-		sort.Strings(playerKeys)
+		sort.Slice(players[planeName], func(i int, j int) bool {
+			return players[planeName][i].Name < players[planeName][j].Name
+		})
 
-		for _, player := range playerKeys {
-			listString += "‏‏‎ ‎‏‏‎ ‎" + player + "\n"
+		for _, player := range players[planeName] {
+			hours := fmt.Sprintf("%02s", strconv.Itoa(int(player.OnlineTime)/60/60))
+			minutes := fmt.Sprintf("%02s", strconv.Itoa(int(player.OnlineTime)/60%60))
+			seconds := fmt.Sprintf("%02s", strconv.Itoa(int(player.OnlineTime)%60))
+			listString += "‏‏‎ ‎‏‏‎ ‎**`" + player.Name + "`** _" + hours + ":" + minutes + ":" + seconds + " h_\n"
 		}
 		listString += "\n"
 	}
