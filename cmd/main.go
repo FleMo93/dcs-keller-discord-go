@@ -10,15 +10,16 @@ import (
 	"strings"
 )
 
-type configJson struct {
+type configJSON struct {
 	Discord struct {
 		Token                 string `json:"token"`
 		Channel               string `json:"channel"`
 		ServerStatusMessageID string `json:"serverStatusMessageId"`
 	} `json:"discord"`
 	Dcs struct {
-		ServerName string `json:"serverName"`
-		Account    struct {
+		ServerName       string `json:"serverName"`
+		ServerStatusFile string `json:"serverStatusFile"`
+		Account          struct {
 			Username string `json:"username"`
 			Password string `json:"password"`
 		} `json:"account"`
@@ -33,6 +34,7 @@ func main() {
 	username := ""
 	password := ""
 	serverName := ""
+	serverStatusFile := ""
 	createMessage := false
 	verbose := false
 
@@ -43,7 +45,7 @@ func main() {
 	}
 
 	if err == nil {
-		config := configJson{}
+		config := configJSON{}
 		err := json.Unmarshal(fileBytes, &config)
 		if err != nil {
 			log.Fatal(err)
@@ -55,6 +57,7 @@ func main() {
 		username = config.Dcs.Account.Username
 		password = config.Dcs.Account.Password
 		serverName = config.Dcs.ServerName
+		serverStatusFile = config.Dcs.ServerStatusFile
 	}
 
 	for _, ele := range arg {
@@ -74,6 +77,8 @@ func main() {
 			createMessage = true
 		} else if strings.Index(ele, "--verbose") == 0 {
 			verbose = true
+		} else if strings.Index(ele, "--serverStatusFile ") == 0 {
+			serverStatusFile = ele[19:]
 		}
 	}
 
@@ -98,7 +103,7 @@ func main() {
 			log.Fatal("Missing parameter")
 		}
 
-		err := m.RunBot(token, botChannel, serverStatusMessageID, username, password, serverName, verbose)
+		err := m.RunBot(token, botChannel, serverStatusMessageID, username, password, serverName, serverStatusFile, verbose)
 		if err != nil {
 			log.Fatal(err)
 		}

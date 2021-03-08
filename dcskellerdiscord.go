@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -44,6 +45,16 @@ type dcsServerList struct {
 		UALIAS0              string `json:"UALIAS_0"`
 		MISSIONTIMEFORMATTED string `json:"MISSION_TIME_FORMATTED"`
 	} `json:"SERVERS"`
+}
+
+type dcsServerStatusPlayer struct {
+	Name string `json:"name"`
+	Role string `json:"role"`
+}
+
+type dcsServerStatus struct {
+	Players       map[string]dcsServerStatusPlayer `json:"players"`
+	MissionsNames []string                         `json:"missionsNames"`
 }
 
 func getServerStatus(username string, password string, serverName string) (dcsServer, error) {
@@ -85,8 +96,59 @@ func verboseMsg(msg string, verbose bool) {
 	}
 }
 
+func readServerStatusFile(filePath string) (dcsServerStatus, error) {
+	fileBytes, err := ioutil.ReadFile(filePath)
+	status := dcsServerStatus{}
+	if err != nil {
+		return status, err
+	}
+
+	err = json.Unmarshal(fileBytes, &status)
+	if err != nil {
+		return status, err
+	}
+
+	return status, nil
+}
+
+func getPlayerListString(serverStatus dcsServerStatus) string {
+	players := make(map[string][]string)
+
+	for _, player := range serverStatus.Players {
+		if players[player.Role] == nil {
+			players[player.Role] = []string{}
+		}
+
+		players[player.Role] = append(players[player.Role], player.Name)
+	}
+
+	var planeKeys []string
+	for k := range players {
+		planeKeys = append(planeKeys, k)
+	}
+	sort.Strings(planeKeys)
+
+	listString := ""
+	for _, planeName := range planeKeys {
+		listString += "**" + planeName + "**\n"
+
+		var playerKeys []string
+		for _, playerName := range players[planeName] {
+			playerKeys = append(playerKeys, playerName)
+		}
+		sort.Strings(playerKeys)
+
+		for _, player := range playerKeys {
+			listString += "‏‏‎ ‎‏‏‎ ‎" + player + "\n"
+		}
+		listString += "\n"
+	}
+
+	return listString
+}
+
 // RunBot starts the dcs kellergeschwader discord bot
-func RunBot(token string, botChannel string, serverStatusMessageID string, username string, password string, serverName string, verbose bool) error {
+func RunBot(token string, botChannel string, serverStatusMessageID string, username string, password string, serverName string, serverStatusFile string, verbose bool) error {
 	session, err := discordgo.New("Bot " + token)
 	if err != nil {
 		return err
@@ -126,6 +188,16 @@ func RunBot(token string, botChannel string, serverStatusMessageID string, usern
 		embedMessage.Description += "IP address: **" + serverStatus.IPADDRESS + ":" + serverStatus.PORT + "**\n"
 		embedMessage.Description += "Mission: **" + serverStatus.MISSIONNAME + "**\n"
 		embedMessage.Description += "Players online: **" + strconv.Itoa(playersOnline) + "**"
+
+		if serverStatusFile != "" {
+			status, err := readServerStatusFile(serverStatusFile)
+			if err != nil {
+				return err
+			}
+
+			playerList := getPlayerListString(status)
+			embedMessage.Description += "\n\n" + playerList
+		}
 	} else {
 		embedMessage.Color = colorOffline
 		embedMessage.Description += "**Offline**\n"
