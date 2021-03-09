@@ -1,3 +1,7 @@
+github.com/FleMo93/dcs-kellergeschwader-serverstatus-go v0.0.0-20210309123739-23ad48722509 h1:5boi0H1EEUgGT7P02a6u8ToNP9dDZ11D7kxEP3JOuv4=
+github.com/FleMo93/dcs-kellergeschwader-serverstatus-go v0.0.0-20210309123739-23ad48722509/go.mod h1:auDseNdE/gNNDBE8BebI6uuu3cT4acS3qWqw11Dx9to=
+github.com/FleMo93/dcs-kellergeschwader-serverstatus-go v0.0.0-20210309130855-197008004770 h1:G19QKsFDdqVeQsE+rLkT1OM1PtEy9AHkvF6fMUFu4aQ=
+github.com/FleMo93/dcs-kellergeschwader-serverstatus-go v0.0.0-20210309130855-197008004770/go.mod h1:auDseNdE/gNNDBE8BebI6uuu3cT4acS3qWqw11Dx9to=
 github.com/bwmarrin/discordgo v0.23.2 h1:BzrtTktixGHIu9Tt7dEE6diysEF9HWnXeHuoJEt2fH4=
 github.com/bwmarrin/discordgo v0.23.2/go.mod h1:c1WtWUGN6nREDmzIpyTp/iD3VYt4Fpx+bVyfBG7JE+M=
 github.com/gorilla/websocket v1.4.0 h1:WDFjx/TMzVgy9VdMMQi2K2Emtwi2QcUQsztZ/zLaH/Q=

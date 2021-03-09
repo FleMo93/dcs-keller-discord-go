@@ -11,76 +11,33 @@ import (
 	"strings"
 	"time"
 
+	serverstatus "github.com/FleMo93/dcs-kellergeschwader-serverstatus-go"
 	"github.com/bwmarrin/discordgo"
 )
 
-type dcsServer struct {
-	ID          string `json:"ID"`
-	NAME        string `json:"NAME"`
-	IPADDRESS   string `json:"IP_ADDRESS"`
-	PORT        string `json:"PORT"`
-	MISSIONNAME string `json:"MISSION_NAME"`
-	MISSIONTIME string `json:"MISSION_TIME"`
-	PLAYERS     string `json:"PLAYERS"`
-	PLAYERSMAX  string `json:"PLAYERS_MAX"`
-	PASSWORD    string `json:"PASSWORD"`
-	URLTODETAIL string `json:"URL_TO_DETAIL"`
-}
-
-type dcsServerList struct {
-	SERVERSMAXCOUNT int         `json:"SERVERS_MAX_COUNT"`
-	SERVERSMAXDATE  string      `json:"SERVERS_MAX_DATE"`
-	PLAYERSCOUNT    int         `json:"PLAYERS_COUNT"`
-	MYSERVERS       []dcsServer `json:"MY_SERVERS"`
-	SERVERS         []struct {
-		NAME                 string `json:"NAME"`
-		IPADDRESS            string `json:"IP_ADDRESS"`
-		PORT                 string `json:"PORT"`
-		MISSIONNAME          string `json:"MISSION_NAME"`
-		MISSIONTIME          string `json:"MISSION_TIME"`
-		PLAYERS              string `json:"PLAYERS"`
-		PLAYERSMAX           string `json:"PLAYERS_MAX"`
-		PASSWORD             string `json:"PASSWORD"`
-		DESCRIPTION          string `json:"DESCRIPTION"`
-		UALIAS0              string `json:"UALIAS_0"`
-		MISSIONTIMEFORMATTED string `json:"MISSION_TIME_FORMATTED"`
-	} `json:"SERVERS"`
-}
-
-type dcsServerStatusPlayer struct {
-	Name       string  `json:"name"`
-	Role       string  `json:"role"`
-	OnlineTime float64 `json:"onlineTime"`
-}
-
-type dcsServerStatus struct {
-	Players       map[string]dcsServerStatusPlayer `json:"players"`
-	MissionsNames []string                         `json:"missionsNames"`
-}
-
-func getServerStatus(username string, password string, serverName string) (dcsServer, error) {
+func getServerStatus(username string, password string, serverName string) (serverstatus.DCSServer, error) {
 	client := &http.Client{}
 
 	url := "https://www.digitalcombatsimulator.com/en/personal/server/?ajax=y&_=" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return dcsServer{}, err
+		return serverstatus.DCSServer{}, err
 	}
 
 	req.SetBasicAuth(username, password)
 	resp, err := client.Do(req)
 	if err != nil {
-		return dcsServer{}, err
+		return serverstatus.DCSServer{}, err
 	}
 
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	body := string(bodyBytes)
 	jsonStart := strings.Index(body, "{")
 	serverList := body[jsonStart:]
-	serverStatus := &dcsServerList{}
+	serverStatus := &serverstatus.DCSServerList{}
 	err = json.Unmarshal([]byte(serverList), serverStatus)
 	if err != nil || body == "" {
-		return dcsServer{}, err
+		return serverstatus.DCSServer{}, err
 	}
 
 	for _, server := range serverStatus.MYSERVERS {
@@ -88,7 +45,7 @@ func getServerStatus(username string, password string, serverName string) (dcsSe
 			return server, nil
 		}
 	}
-	return dcsServer{}, errors.New("Server not found")
+	return serverstatus.DCSServer{}, errors.New("Server not found")
 }
 
 func verboseMsg(msg string, verbose bool) {
@@ -97,9 +54,9 @@ func verboseMsg(msg string, verbose bool) {
 	}
 }
 
-func readServerStatusFile(filePath string) (dcsServerStatus, error) {
+func readServerStatusFile(filePath string) (serverstatus.DCSServerStatus, error) {
 	fileBytes, err := ioutil.ReadFile(filePath)
-	status := dcsServerStatus{}
+	status := serverstatus.DCSServerStatus{}
 	if err != nil {
 		return status, err
 	}
@@ -112,15 +69,11 @@ func readServerStatusFile(filePath string) (dcsServerStatus, error) {
 	return status, nil
 }
 
-func getPlayerListString(serverStatus dcsServerStatus) string {
+func getPlayerListString(serverStatus serverstatus.DCSServerStatus) string {
 	// plane - player group
-	players := make(map[string][]dcsServerStatusPlayer)
+	players := make(map[string][]serverstatus.DCSServerStatusPlayer)
 
 	for _, player := range serverStatus.Players {
-		// if players[player.Role] == nil {
-		// 	players[player.Role] = []
-		// }
-
 		players[player.Role] = append(players[player.Role], player)
 	}
 
