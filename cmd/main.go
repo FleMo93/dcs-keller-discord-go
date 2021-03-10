@@ -12,9 +12,10 @@ import (
 
 type configJSON struct {
 	Discord struct {
-		Token                 string `json:"token"`
-		Channel               string `json:"channel"`
-		ServerStatusMessageID string `json:"serverStatusMessageId"`
+		Token                  string `json:"token"`
+		Channel                string `json:"channel"`
+		ServerStatusMessageID  string `json:"serverStatusMessageId"`
+		WeatherStatusMessageID string `json:"weatherStatusMessageId"`
 	} `json:"discord"`
 	Dcs struct {
 		ServerName       string `json:"serverName"`
@@ -31,6 +32,7 @@ func main() {
 	token := ""
 	botChannel := ""
 	serverStatusMessageID := ""
+	weatherStatusMessageID := ""
 	username := ""
 	password := ""
 	serverName := ""
@@ -54,6 +56,7 @@ func main() {
 		token = config.Discord.Token
 		botChannel = config.Discord.Channel
 		serverStatusMessageID = config.Discord.ServerStatusMessageID
+		weatherStatusMessageID = config.Discord.WeatherStatusMessageID
 		username = config.Dcs.Account.Username
 		password = config.Dcs.Account.Password
 		serverName = config.Dcs.ServerName
@@ -67,6 +70,8 @@ func main() {
 			botChannel = ele[10:]
 		} else if strings.Index(ele, "--serverStatusMessageId ") == 0 {
 			serverStatusMessageID = ele[24:]
+		} else if strings.Index(ele, "--weatherStatusMessageId ") == 0 {
+			weatherStatusMessageID = ele[25:]
 		} else if strings.Index(ele, "--username ") == 0 {
 			username = ele[11:]
 		} else if strings.Index(ele, "--password ") == 0 {
@@ -99,11 +104,11 @@ func main() {
 			fmt.Println(msgID)
 		}
 	} else {
-		if token == "" || botChannel == "" || serverStatusMessageID == "" || username == "" || password == "" || serverName == "" {
+		if token == "" || botChannel == "" || serverStatusMessageID == "" || weatherStatusMessageID == "" || username == "" || password == "" || serverName == "" {
 			log.Fatal("Missing parameter")
 		}
 
-		err := m.RunBot(token, botChannel, serverStatusMessageID, username, password, serverName, serverStatusFile, verbose)
+		err := m.RunBot(token, botChannel, serverStatusMessageID, weatherStatusMessageID, username, password, serverName, serverStatusFile, verbose)
 		if err != nil {
 			log.Fatal(err)
 		}
