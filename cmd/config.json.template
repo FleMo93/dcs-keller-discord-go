@@ -2,10 +2,12 @@
     "discord": {
         "token": "",
         "channel": "",
-        "serverStatusMessageId": ""
+        "serverStatusMessageId": "",
+        "weatherStatusMessageId": ""
     },
     "dcs": {
         "serverName": "",
+        "serverStatusFile": "",
         "account": {
             "username": "",
             "password": ""
