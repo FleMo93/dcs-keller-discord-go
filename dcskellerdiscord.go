@@ -2,51 +2,15 @@ package dcskellerdiscordgo
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	serverstatus "github.com/FleMo93/dcs-kellergeschwader-serverstatus-go"
 	"github.com/bwmarrin/discordgo"
 )
-
-func getServerStatus(username string, password string, serverName string) (serverstatus.DCSServer, error) {
-	client := &http.Client{}
-
-	url := "https://www.digitalcombatsimulator.com/en/personal/server/?ajax=y&_=" + strconv.FormatInt(time.Now().UTC().Unix(), 10)
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return serverstatus.DCSServer{}, err
-	}
-
-	req.SetBasicAuth(username, password)
-	resp, err := client.Do(req)
-	if err != nil {
-		return serverstatus.DCSServer{}, err
-	}
-
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	body := string(bodyBytes)
-	jsonStart := strings.Index(body, "{")
-	serverList := body[jsonStart:]
-	serverStatus := &serverstatus.DCSServerList{}
-	err = json.Unmarshal([]byte(serverList), serverStatus)
-	if err != nil || body == "" {
-		return serverstatus.DCSServer{}, err
-	}
-
-	for _, server := range serverStatus.MYSERVERS {
-		if server.NAME == serverName {
-			return server, nil
-		}
-	}
-	return serverstatus.DCSServer{}, errors.New("Server not found")
-}
 
 func verboseMsg(msg string, verbose bool) {
 	if verbose {
@@ -67,6 +31,13 @@ func readServerStatusFile(filePath string) (serverstatus.DCSServerStatus, error)
 	}
 
 	return status, nil
+}
+
+func secondsToTimeString(time int) string {
+	hours := fmt.Sprintf("%02s", strconv.Itoa(int(time)/60/60))
+	minutes := fmt.Sprintf("%02s", strconv.Itoa(int(time)/60%60))
+	seconds := fmt.Sprintf("%02s", strconv.Itoa(int(time)%60))
+	return hours + ":" + minutes + ":" + seconds + " h"
 }
 
 func getPlayerListString(serverStatus serverstatus.DCSServerStatus) string {
@@ -92,10 +63,7 @@ func getPlayerListString(serverStatus serverstatus.DCSServerStatus) string {
 		})
 
 		for _, player := range players[planeName] {
-			hours := fmt.Sprintf("%02s", strconv.Itoa(int(player.OnlineTime)/60/60))
-			minutes := fmt.Sprintf("%02s", strconv.Itoa(int(player.OnlineTime)/60%60))
-			seconds := fmt.Sprintf("%02s", strconv.Itoa(int(player.OnlineTime)%60))
-			listString += "‏‏‎ ‎‏‏‎ ‎**`" + player.Name + "`** _" + hours + ":" + minutes + ":" + seconds + " h_\n"
+			listString += "‏‏‎ ‎‏‏‎ ‎**`" + player.Name + "`** _" + secondsToTimeString(int(player.OnlineTime)) + "_\n"
 		}
 		listString += "\n"
 	}
@@ -114,7 +82,7 @@ func RunBot(token string, botChannel string, serverStatusMessageID string, usern
 
 	colorOnline := 3388721   //33b531
 	colorOffline := 11878449 //b54031
-	serverStatus, err := getServerStatus(username, password, serverName)
+	serverStatus, err := serverstatus.GetServerStatus(username, password, serverName)
 	serverOnline := true
 
 	if err != nil {
@@ -144,6 +112,7 @@ func RunBot(token string, botChannel string, serverStatusMessageID string, usern
 				return err
 			}
 
+			embedMessage.Description += "Next mission: **" + secondsToTimeString(status.MissionTimeLeft) + "**\n"
 			playerList := getPlayerListString(status)
 			embedMessage.Description += "Players online: **" + strconv.Itoa(len(status.Players)) + "**"
 			embedMessage.Description += "\n\n" + playerList
