@@ -220,7 +220,7 @@ func RunBot(token string, botChannel string, serverStatusMessageID string, weath
 
 	verboseMsg("Bot created", verbose)
 
-	// serverStatus, err := serverstatus.GetServerStatus(username, password, serverName)
+	serverStatus, err := serverstatus.GetServerStatus(username, password, serverName)
 	serverOnline := true
 
 	if err != nil {
@@ -237,8 +237,15 @@ func RunBot(token string, botChannel string, serverStatusMessageID string, weath
 		return err
 	}
 
-	// updateServerStatusMessage(session, botChannel, serverStatusMessageID, serverOnline, status, &serverStatus, verbose)
-	updateServerWeatherMessage(session, botChannel, weatherStatusMessageID, serverOnline, status, verbose)
+	err = updateServerStatusMessage(session, botChannel, serverStatusMessageID, serverOnline, status, &serverStatus, verbose)
+	if err != nil {
+		return err
+	}
+
+	err = updateServerWeatherMessage(session, botChannel, weatherStatusMessageID, serverOnline, status, verbose)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
