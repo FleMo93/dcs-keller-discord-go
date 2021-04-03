@@ -177,7 +177,7 @@ func updateServerWeatherMessage(session *discordgo.Session, botChannel string, s
 		embedMessage.Description += "**Wind**\n"
 		embedMessage.Description += " ‎‏‏‎ ‎At ground: ‎‏‏‎ ‎ ‎‏‏‎ ‎hdg " + fmt.Sprintf("%03s", strconv.Itoa(statusFile.Weather.Wind.AtGround.Dir)) + " - " + fmt.Sprintf("%02s", strconv.Itoa(statusFile.Weather.Wind.AtGround.Speed)) + " kn\n"
 		embedMessage.Description += " ‎‏‏‎ ‎At 6,500 ft: ‎‏‏‎ ‎hdg " + fmt.Sprintf("%03s", strconv.Itoa(statusFile.Weather.Wind.At2000.Dir)) + " - " + fmt.Sprintf("%02s", strconv.Itoa(statusFile.Weather.Wind.At2000.Speed)) + " kn\n"
-		embedMessage.Description += " ‎‏‏‎ ‎At 26,00 ft: ‎‏‏‎ ‎hdg " + fmt.Sprintf("%03s", strconv.Itoa(statusFile.Weather.Wind.At8000.Dir)) + " - " + fmt.Sprintf("%02s", strconv.Itoa(statusFile.Weather.Wind.At8000.Speed)) + " kn\n"
+		embedMessage.Description += " ‎‏‏‎ ‎At 26,000 ft:‎‏‏‎ ‎hdg " + fmt.Sprintf("%03s", strconv.Itoa(statusFile.Weather.Wind.At8000.Dir)) + " - " + fmt.Sprintf("%02s", strconv.Itoa(statusFile.Weather.Wind.At8000.Speed)) + " kn\n"
 		embedMessage.Description += "\n"
 
 		embedMessage.Description += "**Time**\n"
