@@ -174,10 +174,14 @@ func updateServerWeatherMessage(session *discordgo.Session, botChannel string, s
 		embedMessage.Description += "for " + strconv.Itoa(statusFile.Weather.Clouds.Thickness) + " ft\n"
 		embedMessage.Description += "\n"
 
+		speedAtGround := fmt.Sprintf("%02s", strconv.FormatFloat(statusFile.Weather.Wind.AtGround.Speed, 'f', -1, 64))
+		speedAt2000 := fmt.Sprintf("%02s", strconv.FormatFloat(statusFile.Weather.Wind.At2000.Speed, 'f', -1, 64))
+		speedAt8000 := fmt.Sprintf("%02s", strconv.FormatFloat(statusFile.Weather.Wind.At8000.Speed, 'f', -1, 64))
+
 		embedMessage.Description += "**Wind**\n"
-		embedMessage.Description += " ‎‏‏‎ ‎At ground: ‎‏‏‎ ‎ ‎‏‏‎ ‎hdg " + fmt.Sprintf("%03s", strconv.Itoa(statusFile.Weather.Wind.AtGround.Dir)) + " - " + fmt.Sprintf("%02s", strconv.Itoa(statusFile.Weather.Wind.AtGround.Speed)) + " kn\n"
-		embedMessage.Description += " ‎‏‏‎ ‎At 6,500 ft: ‎‏‏‎ ‎hdg " + fmt.Sprintf("%03s", strconv.Itoa(statusFile.Weather.Wind.At2000.Dir)) + " - " + fmt.Sprintf("%02s", strconv.Itoa(statusFile.Weather.Wind.At2000.Speed)) + " kn\n"
-		embedMessage.Description += " ‎‏‏‎ ‎At 26,000 ft:‎‏‏‎ ‎hdg " + fmt.Sprintf("%03s", strconv.Itoa(statusFile.Weather.Wind.At8000.Dir)) + " - " + fmt.Sprintf("%02s", strconv.Itoa(statusFile.Weather.Wind.At8000.Speed)) + " kn\n"
+		embedMessage.Description += " ‎‏‏‎ ‎At ground: ‎‏‏‎ ‎ ‎‏‏‎ ‎hdg " + fmt.Sprintf("%03s", strconv.Itoa(statusFile.Weather.Wind.AtGround.Dir)) + " - " + speedAtGround + " kn\n"
+		embedMessage.Description += " ‎‏‏‎ ‎At 6,500 ft: ‎‏‏‎ ‎hdg " + fmt.Sprintf("%03s", strconv.Itoa(statusFile.Weather.Wind.At2000.Dir)) + " - " + speedAt2000 + " kn\n"
+		embedMessage.Description += " ‎‏‏‎ ‎At 26,000 ft:‎‏‏‎ ‎hdg " + fmt.Sprintf("%03s", strconv.Itoa(statusFile.Weather.Wind.At8000.Dir)) + " - " + speedAt8000 + " kn\n"
 		embedMessage.Description += "\n"
 
 		embedMessage.Description += "**Time**\n"
