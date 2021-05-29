@@ -16,6 +16,7 @@ type serverConfigJSON struct {
 	DiscordMessageID string `json:"discordMessageId"`
 	ServerStatusFile string `json:"serverStatusFile"`
 	ThumbnailUrl     string `json:"thumbnailUrl"`
+	DCSInstallDir    string `json:"dcsInstallationDir"`
 }
 
 type configJSON struct {
@@ -75,6 +76,7 @@ func main() {
 				ServerStatusFilePath: serverConfig.ServerStatusFile,
 				DiscordChannelId:     serverConfig.DiscordChannelID,
 				DiscordMessageId:     serverConfig.DiscordMessageID,
+				DcsInstallDir:        serverConfig.DCSInstallDir,
 				ThumbnailURL:         serverConfig.ThumbnailUrl,
 			})
 		}

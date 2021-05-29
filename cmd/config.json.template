@@ -12,7 +12,8 @@
             "discordChannelId": "",
             "discordMessageId": "",
             "serverStatusFile": "",
-            "thumbnailUrl": ""
+            "thumbnailUrl": "",
+            "dcsInstallationDir": ""
         }
     ]
 }

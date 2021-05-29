@@ -1,7 +1,10 @@
 package dcskellerdiscordgo
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"path"
 	"sort"
 	"strconv"
 	"time"
@@ -16,6 +19,12 @@ type DCSServer struct {
 	DiscordChannelId     string
 	DiscordMessageId     string
 	ThumbnailURL         string
+	DcsInstallDir        string
+}
+
+type autoupdateCfg struct {
+	Branch  string `json:"branch"`
+	Version string `json:"version"`
 }
 
 func verboseMsg(msg string, verbose bool) {
@@ -62,6 +71,22 @@ func getPlayerListString(serverStatus *serverstatus.DCSServerStatus) string {
 	return listString
 }
 
+func readAutoupdateCfg(dcsDir string) (autoupdateCfg, error) {
+	fileBytes, err := ioutil.ReadFile(path.Join(dcsDir, "autoupdate.cfg"))
+
+	if err != nil {
+		return autoupdateCfg{}, err
+	}
+
+	config := autoupdateCfg{}
+	err = json.Unmarshal(fileBytes, &config)
+	if err != nil {
+		return autoupdateCfg{}, err
+	}
+
+	return config, nil
+}
+
 var serverColorOffline int = 11878449 //b54031
 var serverColorOnline int = 3388721   //33b531
 
@@ -72,11 +97,12 @@ var weatherIconCloudy = ":cloud:"
 var weatherIconCloudyRainy = ":cloud_rain:"
 var weatherIconStormy = ":thunder_cloud_rain:"
 
-func setServerStatusDescription(embedMessage *discordgo.MessageEmbed, statusFile *serverstatus.DCSServerStatus, dcsServerWebInfo *serverstatus.DCSServer, verbose bool) {
+func setServerStatusDescription(embedMessage *discordgo.MessageEmbed, statusFile *serverstatus.DCSServerStatus, dcsServerWebInfo *serverstatus.DCSServer, autoupdateCfg *autoupdateCfg, verbose bool) {
 	playerList := getPlayerListString(statusFile)
 
 	embedMessage.Description += "Name: **" + dcsServerWebInfo.NAME + "**\n"
 	embedMessage.Description += "IP address: **" + dcsServerWebInfo.IPADDRESS + ":" + dcsServerWebInfo.PORT + "**\n"
+	embedMessage.Description += "Version: **" + autoupdateCfg.Version + " - " + autoupdateCfg.Branch + "**\n"
 	embedMessage.Description += "Mission: **" + dcsServerWebInfo.MISSIONNAME + "**\n"
 	embedMessage.Description += "Next mission: **" + secondsToTimeString(statusFile.MissionTimeLeft) + " h**\n"
 	embedMessage.Description += "Players online: **" + strconv.Itoa(len(statusFile.Players)) + "**\n"
@@ -129,7 +155,7 @@ func setServerStatusDescription(embedMessage *discordgo.MessageEmbed, statusFile
 	embedMessage.Description += " ‎‏‏‎  ‎‏‏" + secondsToTimeString(statusFile.Time)
 }
 
-func updateServerStatusMessage(session *discordgo.Session, discordChannelId string, discordMessageId string, serverOnline bool, serverOptions *DCSServer, serverStatusFileInfo *serverstatus.DCSServerStatus, dcsServerWebInfo *serverstatus.DCSServer, verbose bool) error {
+func updateServerStatusMessage(session *discordgo.Session, discordChannelId string, discordMessageId string, serverOnline bool, serverOptions *DCSServer, serverStatusFileInfo *serverstatus.DCSServerStatus, dcsServerWebInfo *serverstatus.DCSServer, autoupdateCfg *autoupdateCfg, verbose bool) error {
 	verboseMsg("Update server status message", verbose)
 	embedMessage := discordgo.MessageEmbed{}
 	embedMessage.Title = "Server Status"
@@ -139,7 +165,7 @@ func updateServerStatusMessage(session *discordgo.Session, discordChannelId stri
 
 	if serverOnline == true {
 		embedMessage.Color = serverColorOnline
-		setServerStatusDescription(&embedMessage, serverStatusFileInfo, dcsServerWebInfo, verbose)
+		setServerStatusDescription(&embedMessage, serverStatusFileInfo, dcsServerWebInfo, autoupdateCfg, verbose)
 	} else {
 		embedMessage.Color = serverColorOffline
 		embedMessage.Description += "**Offline**\n"
@@ -204,7 +230,12 @@ func RunBot(token string, username string, password string, dcsServer []DCSServe
 			return err
 		}
 
-		err = updateServerStatusMessage(session, server.DiscordChannelId, server.DiscordMessageId, serverOnline, &server, &status, &serverStatus[index], verbose)
+		autoupdateCfg, err := readAutoupdateCfg(server.DcsInstallDir)
+		if err != nil {
+			return err
+		}
+
+		err = updateServerStatusMessage(session, server.DiscordChannelId, server.DiscordMessageId, serverOnline, &server, &status, &serverStatus[index], &autoupdateCfg, verbose)
 		if err != nil {
 			return err
 		}
