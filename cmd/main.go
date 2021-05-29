@@ -10,35 +10,37 @@ import (
 	"strings"
 )
 
+type serverConfigJSON struct {
+	ServerName       string `json:"serverName"`
+	DiscordChannelID string `json:"discordChannelId"`
+	DiscordMessageID string `json:"discordMessageId"`
+	ServerStatusFile string `json:"serverStatusFile"`
+	ThumbnailUrl     string `json:"thumbnailUrl"`
+}
+
 type configJSON struct {
 	Discord struct {
-		Token                  string `json:"token"`
-		Channel                string `json:"channel"`
-		ServerStatusMessageID  string `json:"serverStatusMessageId"`
-		WeatherStatusMessageID string `json:"weatherStatusMessageId"`
-	} `json:"discord"`
-	Dcs struct {
-		ServerName       string `json:"serverName"`
-		ServerStatusFile string `json:"serverStatusFile"`
-		Account          struct {
+		Token   string `json:"token"`
+		Account struct {
 			Username string `json:"username"`
 			Password string `json:"password"`
 		} `json:"account"`
-	} `json:"dcs"`
+	} `json:"discord"`
+	Server []serverConfigJSON
 }
 
 func main() {
 	arg := os.Args
-	token := ""
-	botChannel := ""
-	serverStatusMessageID := ""
-	weatherStatusMessageID := ""
-	username := ""
-	password := ""
-	serverName := ""
-	serverStatusFile := ""
 	createMessage := false
 	verbose := false
+
+	for _, ele := range arg {
+		if strings.Index(ele, "--createMessage") == 0 {
+			createMessage = true
+		} else if strings.Index(ele, "--verbose") == 0 {
+			verbose = true
+		}
+	}
 
 	fileBytes, err := ioutil.ReadFile("./config.json")
 
@@ -46,69 +48,43 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err == nil {
-		config := configJSON{}
-		err := json.Unmarshal(fileBytes, &config)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		token = config.Discord.Token
-		botChannel = config.Discord.Channel
-		serverStatusMessageID = config.Discord.ServerStatusMessageID
-		weatherStatusMessageID = config.Discord.WeatherStatusMessageID
-		username = config.Dcs.Account.Username
-		password = config.Dcs.Account.Password
-		serverName = config.Dcs.ServerName
-		serverStatusFile = config.Dcs.ServerStatusFile
-	}
-
-	for _, ele := range arg {
-		if strings.Index(ele, "--token ") == 0 {
-			token = ele[8:]
-		} else if strings.Index(ele, "--channel ") == 0 {
-			botChannel = ele[10:]
-		} else if strings.Index(ele, "--serverStatusMessageId ") == 0 {
-			serverStatusMessageID = ele[24:]
-		} else if strings.Index(ele, "--weatherStatusMessageId ") == 0 {
-			weatherStatusMessageID = ele[25:]
-		} else if strings.Index(ele, "--username ") == 0 {
-			username = ele[11:]
-		} else if strings.Index(ele, "--password ") == 0 {
-			password = ele[11:]
-		} else if strings.Index(ele, "--serverName ") == 0 {
-			serverName = ele[13:]
-		} else if strings.Index(ele, "--createMessage") == 0 {
-			createMessage = true
-		} else if strings.Index(ele, "--verbose") == 0 {
-			verbose = true
-		} else if strings.Index(ele, "--serverStatusFile ") == 0 {
-			serverStatusFile = ele[19:]
-		}
+	config := configJSON{}
+	err = json.Unmarshal(fileBytes, &config)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	if createMessage {
-		if token == "" || botChannel == "" {
-			log.Fatal("Missing parameter")
-		}
-
 		log.Print("Create bot messages")
-		msgIDs, err := m.CreateMessage(token, botChannel)
+		for _, server := range config.Server {
+			msgIDs, err := m.CreateMessage(config.Discord.Token, server.DiscordChannelID)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Println("Message IDs created:")
-		for _, msgID := range msgIDs {
-			fmt.Println(msgID)
+			fmt.Println("Message IDs created:")
+			for _, msgID := range msgIDs {
+				fmt.Println(msgID)
+			}
 		}
 	} else {
-		if token == "" || botChannel == "" || serverStatusMessageID == "" || weatherStatusMessageID == "" || username == "" || password == "" || serverName == "" {
-			log.Fatal("Missing parameter")
+		server := []m.DCSServer{}
+		for _, serverConfig := range config.Server {
+			server = append(server, m.DCSServer{
+				ServerName:           serverConfig.ServerName,
+				ServerStatusFilePath: serverConfig.ServerStatusFile,
+				DiscordChannelId:     serverConfig.DiscordChannelID,
+				DiscordMessageId:     serverConfig.DiscordMessageID,
+				ThumbnailURL:         serverConfig.ThumbnailUrl,
+			})
 		}
-
-		err := m.RunBot(token, botChannel, serverStatusMessageID, weatherStatusMessageID, username, password, serverName, serverStatusFile, verbose)
+		err := m.RunBot(
+			config.Discord.Token,
+			config.Discord.Account.Username,
+			config.Discord.Account.Password,
+			server,
+			verbose,
+		)
 		if err != nil {
 			log.Fatal(err)
 		}

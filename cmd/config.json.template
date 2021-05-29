@@ -1,16 +1,18 @@
 {
     "discord": {
         "token": "",
-        "channel": "",
-        "serverStatusMessageId": "",
-        "weatherStatusMessageId": ""
-    },
-    "dcs": {
-        "serverName": "",
-        "serverStatusFile": "",
         "account": {
             "username": "",
             "password": ""
         }
-    }
+    },
+    "server": [
+        {
+            "serverName": "",
+            "discordChannelId": "",
+            "discordMessageId": "",
+            "serverStatusFile": "",
+            "thumbnailUrl": ""
+        }
+    ]
 }
